@@ -12,6 +12,13 @@ A server sided anti exploit capable of handling common exploits smoothly. Perfor
 - Invalid tool deletion
 - God mode
 
+### Future Updates
+
+- Flight detection
+- Low gravity detection
+- Body mover support
+- More reliability
+
 ### Intended behaviour
 
 The anti exploit doesn't handle any physics detections if:
