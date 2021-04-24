@@ -1,0 +1,22 @@
+{
+  "name": "BoboFighter",
+  "tree": {
+    "$className": "DataModel",
+
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "$path": "src/Server",
+      "$ignoreUnknownInstances": true
+    },
+
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+
+      "StarterCharacterScripts": {
+        "$className": "StarterCharacterScripts",
+         "$path": "src/Client",
+         "$ignoreUnknownInstances": true
+      }
+    }
+  }
+}

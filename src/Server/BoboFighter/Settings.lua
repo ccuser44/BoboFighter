@@ -12,6 +12,15 @@ return {
         GodMode = true -- Deleting humanoid on the server and creating a new humanoid on the client
     },
 
+    -- List of user id's that will be black listed (won't be detected)
+    BlackListedPlayers = {
+        --[[  
+            125390463, -- SilentsReplacement
+            263490634, -- Bobo Fin
+        ]]
+
+    },
+
     Leeways = {
         -- Lower leeways than these may result in false positives! You're encouraged to test them out though and see 
         -- which one is best suited for your game
