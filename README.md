@@ -2,8 +2,8 @@
 
 A server sided anti exploit capable of handling common exploits smoothly. Performance friendly, and reserves resources. 
 
-## Current Supported Detections
+### Current Supported Detections
 
-## Intended behaviour
+### Intended behaviour
 
-## Caveats
+### Caveats
