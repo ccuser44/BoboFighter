@@ -14,4 +14,11 @@ A server sided anti exploit capable of handling common exploits smoothly. Perfor
 
 ### Intended behaviour
 
+The anti exploit doesn't handle any physics detections if:
+
+- The player is seated
+- The player was teleported by the server
+
+False positives rarely should be a problem, make sure to adjust the leeways found in the Settings module to best suit your game!
+
 ### Caveats
