@@ -3,4 +3,5 @@
 
 # Roblox Studio lock files
 /*.rbxlx.lock
-/*.rbxl.lock
+/*.rbxl.lockgit config --global user.name "Your Name"
+git config --global user.email youremail@domain.com
