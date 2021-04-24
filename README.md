@@ -1,4 +1,4 @@
-## BoboFighter
+# BoboFighter
 
 A server sided anti exploit capable of handling common exploits smoothly. Performance friendly, and reserves resources. 
 
