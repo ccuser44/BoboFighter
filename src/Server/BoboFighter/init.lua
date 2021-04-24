@@ -30,8 +30,8 @@ local function On_Ground(primaryPart, params)
 	local middleRay = Workspace:Raycast(primaryPart.Position, Vector3.new(0, (-primaryPart.Size.Y / 2) * 4 + .5, 0), params)
 
 	return middleRay or Workspace:Raycast(primaryPart.Position +
-	 	Vector3.new(primaryPart.Size.X / 2, 0, 0), 
-	 	Vector3.new(0, (-primaryPart.Size.Y / 2) * 4 + .5, 0), params)
+		Vector3.new(primaryPart.Size.X / 2, 0, 0), 
+		Vector3.new(0, (-primaryPart.Size.Y / 2) * 4 + .5, 0), params)
 end
 
 local function In_Water(primaryPart)
@@ -85,19 +85,19 @@ local function HeartbeatUpdate()
 			local humanoid = character:FindFirstChildWhichIsA("Humanoid")
 
 			-- No root part or humanoid?
-			if not (primaryPart or humanoid) then
+			if (not primaryPart) or not humanoid then
 				continue
 			end
 
 			local physicsData = exploitData.PhysicsData
- 
+
 			-- Detections paused or player is seated? 
 			if physicsData.DetectionsPaused or humanoid.SeatPart then
 				-- Update last cframe:
 				physicsData.LastCFrame = primaryPart.CFrame
 				continue
 			end
-			
+
 			local lastCheckDelta = time() - (exploitData.LastCheckCycle or time())
 			local canSetNetworkOwner, _ = primaryPart:CanSetNetworkOwnership(), nil
 
@@ -129,23 +129,23 @@ local function HeartbeatUpdate()
 				-- Make sure the player wasn't teleported by the server and last cframe exists:
 				if (not physicsData.ServerChangedPosition) and physicsData.LastCFrame then
 					local ray = Workspace:Raycast(physicsData.LastCFrame.Position, primaryPart.Position - physicsData.LastCFrame.Position, physicsData.RayCastParams)
-		
+
 					-- Player walked through a can collide instance?
 					if ray and ray.Instance.CanCollide then
 						-- Calculate depth: 
 						local depth = math.floor((primaryPart.Position - physicsData.LastCFrame.Position).Magnitude)
-						
+
 						-- Depth greater than leeway?
 						if depth >= leeways.NoClipDepth then
 							Punish(primaryPart, physicsData.LastCFrame)
 							exploitData.TimeSincePunished = time()
 							table.insert(exploitData.Detections, ("No Clip | Captured depth: %s"):format(depth))
 						end 
-		
+
 					elseif not ray then
 						-- Rare case: Player walked through a object fast
 						local depth = In_Object(primaryPart)
-						
+
 						-- Depth greater than leeway?
 						if depth and depth >= leeways.NoClipDepth then
 							Punish(primaryPart, primaryPart.CFrame * CFrame.new(0, 0, 3))
@@ -159,38 +159,35 @@ local function HeartbeatUpdate()
 			if detections.Speed and lastCheckDelta >= Constants.PASSIVE_CHECK_INTERVAL then  
 				-- Make sure the player wasn't teleported by the server and last cframe exists:  
 				if (not physicsData.ServerChangedPosition) and physicsData.LastCFrame then
-					-- Make sure player wasn't hit by a fast moving object:
-					if humanoid:GetState() ~= Enum.HumanoidStateType.Ragdoll then 
-						-- Max speed needs to be a significant amount than their walk speed to prevent false positives because of
-						-- latency and other internal physics handling:
+					-- Max speed needs to be a significant amount than their walk speed to prevent false positives because of
+					-- latency and other internal physics handling:
 
-						local humanoidWalkSpeed = math.floor(humanoid.WalkSpeed)
+					local humanoidWalkSpeed = math.floor(humanoid.WalkSpeed)
 
-						-- Only update values when necessary since computation almost every frame can become quite expensive:
-						if humanoidWalkSpeed ~= physicsData.WalkSpeed then
-							physicsData.WalkSpeed = humanoidWalkSpeed
-							physicsData.MaxWalkSpeed = humanoidWalkSpeed + humanoidWalkSpeed / 2 + leeways.Speed
-						end
+					-- Only update values when necessary since computation almost every frame can become quite expensive:
+					if humanoidWalkSpeed ~= physicsData.WalkSpeed then
+						physicsData.WalkSpeed = humanoidWalkSpeed
+						physicsData.MaxWalkSpeed = humanoidWalkSpeed + humanoidWalkSpeed / 2 + leeways.Speed
+					end
 
-						local averageSpeed = math.floor((primaryPart.Position * Vector3.new(1, 0, 1) - physicsData.LastCFrame.Position * Vector3.new(1, 0, 1)).Magnitude / lastCheckDelta)
-		
-						-- Accumulated average speed greater than max jump speed?
-						if averageSpeed > physicsData.MaxWalkSpeed then
-							Punish(primaryPart, physicsData.LastCFrame)
-							exploitData.TimeSincePunished = time()
-							table.insert(exploitData.Detections, ("Speeding | Captured average speed: %s"):format(averageSpeed))
-						end
+					local averageSpeed = math.floor((primaryPart.Position * Vector3.new(1, 0, 1) - physicsData.LastCFrame.Position * Vector3.new(1, 0, 1)).Magnitude / lastCheckDelta)
+
+					-- Accumulated average speed greater than max jump speed?
+					if averageSpeed > physicsData.MaxWalkSpeed then
+						Punish(primaryPart, physicsData.LastCFrame)
+						exploitData.TimeSincePunished = time()
+						table.insert(exploitData.Detections, ("Speeding | Captured average speed: %s"):format(averageSpeed))
 					end
 				end
 			end
-		   
+
 			if detections.VerticalSpeed and lastCheckDelta >= Constants.PASSIVE_CHECK_INTERVAL then  
 				-- Make sure player isn't falling from the ground and last cframe exists:  
 				if primaryPart.Position.Y >= ((physicsData.LastPositionOnGround and physicsData.LastPositionOnGround.Y) or math.huge) and physicsData.LastCFrame then
-					-- Make sure player wasn't hit by a fast moving object and the server didn't change the players position:
-					if (not physicsData.ServerChangedPosition) and humanoid:GetState() ~= Enum.HumanoidStateType.Ragdoll then 
+					-- Make sure the server didn't change the players position:
+					if not physicsData.ServerChangedPosition then 
 						-- Calculate max and accumulated jump power:
- 
+
 						local humanoidJumpPower = math.floor(humanoid.JumpPower)
 
 						-- Only update values when necessary since computation almost every frame can become quite expensive:
@@ -222,7 +219,7 @@ local function HeartbeatUpdate()
 					physicsData.LastPositionOnGround = primaryPart.Position
 					physicsData.ServerChangedPosition = primaryPart.Anchored 
 				end 
- 
+
 				physicsData.LastCFrame = primaryPart.CFrame
 				exploitData.LastCheckCycle = time()
 			end
@@ -246,7 +243,7 @@ function BoboFighter.Connect()
 
 		local primaryPart = character.PrimaryPart or character:WaitForChild("HumanoidRootPart", 15)
 		local humanoid = character:FindFirstChildWhichIsA("Humanoid") or character:WaitForChild("Humanoid", 15)
- 
+
 		-- Create exploit data if not created:
 		if not exploitData then
 			BoboFighter.GlobalExploitData[player.Name] = setmetatable({
@@ -262,16 +259,16 @@ function BoboFighter.Connect()
 					WalkSpeed = nil,
 					MaxJumpSpeed = nil,
 				},
-					
+
 				Detections = {},
 				LastCheckCycle = time(),
 				LastCheckTime = 0,
 				TimeSincePunished = 0,
 				HeartbeatConnection = nil
-	
+
 			}, {__index = ExploitData})
 		end 
-	
+
 		exploitData = BoboFighter.GlobalExploitData[player.Name]
 
 		local physicsData = exploitData.PhysicsData
@@ -322,25 +319,23 @@ function BoboFighter.Connect()
 
 		if detections.MultiToolEquip then
 			character.ChildAdded:Connect(function(child)
-				if physicsData.DetectionsPaused then
+				if physicsData.DetectionsPaused or not child:IsA("Tool") then
 					return
 				end
+				
+				-- Count number of tools:
+				local toolCount = 0
 
-				if child:IsA("Tool") then
-					-- Count number of tools:
-					local toolCount = 0
+				for _, child in ipairs(character:GetChildren()) do
+					if child:IsA("Tool") then
+						toolCount += 1
 
-					for _, child in ipairs(character:GetChildren()) do
-						if child:IsA("Tool") then
-							toolCount += 1
-
-							-- Player has equiped more than 1 tool?
-							if toolCount > 1 then
-								RunService.Heartbeat:Wait()
-								child.Parent = player.Backpack
-							end
-						end 
-					end
+						-- Player has equiped more than 1 tool?
+						if toolCount > 1 then
+							RunService.Heartbeat:Wait()
+							child.Parent = player.Backpack
+						end
+					end 
 				end
 			end)
 		end
@@ -361,7 +356,7 @@ function BoboFighter.Connect()
 		if not exploitData then
 			return
 		end
- 
+
 		CachedRegions[player.Name] = nil
 		BoboFighter.GlobalExploitData[player.Name] = nil
 	end
