@@ -18,7 +18,10 @@ The anti exploit doesn't handle any physics detections if:
 
 - The player is seated
 - The player was teleported by the server
+- The player was flinged / (hit by a fast moving object)
 
 False positives rarely should be a problem, make sure to adjust the leeways found in the Settings module to best suit your game!
 
 ### Caveats
+
+- Lack of high speed server sided body mover support 
