@@ -183,14 +183,14 @@ local function HeartbeatUpdate()
 					end
 				end
 			end
-		 
+		   
 			if detections.VerticalSpeed and lastCheckDelta >= Constants.PASSIVE_CHECK_INTERVAL then  
 				-- Make sure player isn't falling from the ground and last cframe exists:  
 				if primaryPart.Position.Y >= ((physicsData.LastPositionOnGround and physicsData.LastPositionOnGround.Y) or math.huge) and physicsData.LastCFrame then
-					-- Make sure player wasn't hit by a fast moving object:
-					if humanoid:GetState() ~= Enum.HumanoidStateType.Ragdoll then 
+					-- Make sure player wasn't hit by a fast moving object and the server didn't change the players position:
+					if (not physicsData.ServerChangedPosition) and humanoid:GetState() ~= Enum.HumanoidStateType.Ragdoll then 
 						-- Calculate max and accumulated jump power:
-
+ 
 						local humanoidJumpPower = math.floor(humanoid.JumpPower)
 
 						-- Only update values when necessary since computation almost every frame can become quite expensive:
@@ -210,7 +210,7 @@ local function HeartbeatUpdate()
 					end
 				end
 			end
-	
+
 			-- Has enough time has passed to update physics data?
 			if lastCheckDelta >= Constants.PASSIVE_CHECK_INTERVAL then
 				-- Update last position if on ground or in water:
@@ -222,7 +222,7 @@ local function HeartbeatUpdate()
 					physicsData.LastPositionOnGround = primaryPart.Position
 					physicsData.ServerChangedPosition = primaryPart.Anchored 
 				end 
-
+ 
 				physicsData.LastCFrame = primaryPart.CFrame
 				exploitData.LastCheckCycle = time()
 			end
@@ -246,7 +246,7 @@ function BoboFighter.Connect()
 
 		local primaryPart = character.PrimaryPart or character:WaitForChild("HumanoidRootPart", 15)
 		local humanoid = character:FindFirstChildWhichIsA("Humanoid") or character:WaitForChild("Humanoid", 15)
-
+ 
 		-- Create exploit data if not created:
 		if not exploitData then
 			BoboFighter.GlobalExploitData[player.Name] = setmetatable({
@@ -286,15 +286,11 @@ function BoboFighter.Connect()
 		-- Only listen to scripted positional changes if physics detections are turned on in the first place:
 		if detections.Fly or detections.Speed or detections.NoClip then 
 			primaryPart:GetPropertyChangedSignal("CFrame"):Connect(function()
-				exploitData.ServerChangedPosition = true
+				physicsData.ServerChangedPosition = true
 			end)
 
 			primaryPart:GetPropertyChangedSignal("Position"):Connect(function()
-				exploitData.ServerChangedPosition = true
-			end)
-
-			humanoid.Changed:Connect(function()
-				exploitData.ServerChangedHumanoidProperty = true
+				physicsData.ServerChangedPosition = true
 			end)
 		end
 
