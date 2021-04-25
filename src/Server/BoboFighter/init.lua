@@ -411,7 +411,7 @@ function BoboFighter.GetExploitData(user)
 end
 
 function BoboFighter.Disconnect()
-	if BoboFighter.HeartbeatConnection then
+	if not BoboFighter.HeartbeatConnection then
 		return warn(("%s No current connections"):format(tostring(BoboFighter)))
 	end
 
