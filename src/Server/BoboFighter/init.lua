@@ -71,8 +71,13 @@ local function Child_Destroyed(child)
 end
 
 local function HeartbeatUpdate()
-	BoboFighter.HeartbeatUpdate = RunService.Heartbeat:Connect(function(delta)
+	BoboFighter.HeartbeatUpdate = RunService.Heartbeat:Connect(function()
 		for _, player in ipairs(Players:GetPlayers()) do
+			-- Is player black listed?
+			if Settings.BlackListedPlayers[player.UserId] then
+				continue
+			end
+
 			local exploitData = BoboFighter.GetExploitData(player.Name)
 
 			-- No exploit data?
@@ -91,8 +96,8 @@ local function HeartbeatUpdate()
 
 			local physicsData = exploitData.PhysicsData
 
-			-- Detections paused or player is seated? 
-			if physicsData.DetectionsPaused or humanoid.SeatPart then
+			-- Physics Detections paused or player is seated? 
+			if physicsData.PhysicsDetectionsPaused or humanoid.SeatPart then
 				-- Update last cframe:
 				physicsData.LastCFrame = primaryPart.CFrame
 				continue
@@ -143,13 +148,14 @@ local function HeartbeatUpdate()
 						end 
 
 					elseif not ray then
-						-- Rare case: Player walked through a object fast
+						-- Rare case: Player walked through a object very fast
 						local depth = In_Object(primaryPart)
 
 						-- Depth greater than leeway?
 						if depth and depth >= leeways.NoClipDepth then
 							Punish(primaryPart, primaryPart.CFrame * CFrame.new(0, 0, 3))
 							exploitData.TimeSincePunished = time()
+							exploitData.Flags += 1
 							table.insert(exploitData.Detections, ("No Clip | Captured depth: %s"):format(depth))
 						end
 					end
@@ -176,6 +182,7 @@ local function HeartbeatUpdate()
 					if averageSpeed > physicsData.MaxWalkSpeed then
 						Punish(primaryPart, physicsData.LastCFrame)
 						exploitData.TimeSincePunished = time()
+						exploitData.Flags += 1
 						table.insert(exploitData.Detections, ("Speeding | Captured average speed: %s"):format(averageSpeed))
 					end
 				end
@@ -202,6 +209,7 @@ local function HeartbeatUpdate()
 						if accumulatedJumpPower > physicsData.MaxJumpPower then
 							Punish(primaryPart, physicsData.LastCFrame)
 							exploitData.TimeSincePunished = time()
+							exploitData.Flags += 1
 							table.insert(exploitData.Detections, ("Vertical Speeding | Captured jump power: %s"):format(accumulatedJumpPower))
 						end
 					end
@@ -261,6 +269,7 @@ function BoboFighter.Connect()
 				},
 
 				Detections = {},
+				Flags = 0,
 				LastCheckCycle = time(),
 				LastCheckTime = 0,
 				TimeSincePunished = 0,
@@ -273,19 +282,23 @@ function BoboFighter.Connect()
 
 		local physicsData = exploitData.PhysicsData
 
-		-- Update ray cast params and physics data:
-		physicsData.RayCastParams = rayCastParams
-		physicsData.JumpPower = humanoid.JumpPower
-		physicsData.MaxJumpPower = humanoid.JumpPower + humanoid.JumpPower / 2 + leeways.VerticalSpeed
-		physicsData.WalkSpeed = humanoid.WalkSpeed
-		physicsData.MaxWalkSpeed = humanoid.WalkSpeed + humanoid.WalkSpeed / 2 + leeways.Speed
-
 		-- Only listen to scripted positional changes if physics detections are turned on in the first place:
 		if detections.Fly or detections.Speed or detections.NoClip then 
+			-- Create a new thread to yield:
+			if not primaryPart then
+				coroutine.wrap(function()
+					-- The primary part may not be updated even when this event fires, (set to nil again) though
+					-- that is a very rare case 
+					while not primaryPart do
+						primaryPart = character:GetPropertyChangedSignal("PrimaryPart"):Wait() 
+					end
+				end)()
+			end
+			
 			primaryPart:GetPropertyChangedSignal("CFrame"):Connect(function()
 				physicsData.ServerChangedPosition = true
 			end)
-
+	
 			primaryPart:GetPropertyChangedSignal("Position"):Connect(function()
 				physicsData.ServerChangedPosition = true
 			end)
@@ -293,23 +306,22 @@ function BoboFighter.Connect()
 
 		if detections.InvalidToolDrop or detections.GodMode then
 			character.ChildRemoved:Connect(function(child)
-				if physicsData.DetectionsPaused then
-					return
-				end
-
 				if detections.GodMode and child:IsA("Humanoid") then
-					if not Child_Destroyed(child)  then
+					-- Make sure the humanoid wasn't destroyed from the server:
+					if not Child_Destroyed(child) then
 						RunService.Heartbeat:Wait()
 						child.Parent = character
 					end
 				end
 
 				if detections.InvalidToolDrop and child:IsA("Tool") then
+					-- Can the tool be dropped?
 					if child.CanBeDropped then
 						return
 					end
 
-					if child:IsA("Tool") and not Child_Destroyed(child) then
+					-- Make sure the tool wasn't destroyed from the server:
+					if not Child_Destroyed(child) then
 						RunService.Heartbeat:Wait()
 						child.Parent = character
 					end
@@ -317,9 +329,9 @@ function BoboFighter.Connect()
 			end)
 		end 
 
-		if detections.MultiToolEquip then
+		if detections.MultiToolEquip or detections.InvalidToolGripHeight then
 			character.ChildAdded:Connect(function(child)
-				if physicsData.DetectionsPaused or not child:IsA("Tool") then
+				if not child:IsA("Tool") then
 					return
 				end
 				
@@ -338,6 +350,22 @@ function BoboFighter.Connect()
 					end 
 				end
 			end)
+		end
+
+		-- Update ray cast params and physics data:
+		physicsData.RayCastParams = rayCastParams
+		
+		local humanoidWalkSpeed = math.floor(humanoid.WalkSpeed)
+		local humanoidJumpPower = math.floor(humanoid.JumpPower)
+		
+		if physicsData.JumpPower ~= humanoidJumpPower then
+			physicsData.MaxJumpPower = humanoid.JumpPower + humanoid.JumpPower / 2 + leeways.VerticalSpeed
+			physicsData.JumpPower = humanoidJumpPower
+		end
+		
+		if physicsData.WalkSpeed ~= humanoidWalkSpeed then
+			physicsData.MaxWalkSpeed = humanoid.JumpPower + humanoid.JumpPower / 2 + leeways.VerticalSpeed
+			physicsData.WalkSpeed = humanoidWalkSpeed
 		end
 	end
 
@@ -371,11 +399,11 @@ function BoboFighter.Connect()
 end
 
 function ExploitData:Pause()
-	self.PhysicsData.DetectionsPaused = true
+	self.PhysicsData.PhysicsDetectionsPaused = true
 end
 
 function ExploitData:Start()
-	self.PhysicsData.DetectionsPaused = false
+	self.PhysicsData.PhysicsDetectionsPaused = false
 end
 
 function BoboFighter.GetExploitData(user)
@@ -386,6 +414,8 @@ function BoboFighter.Disconnect()
 	if BoboFighter.HeartbeatConnection then
 		return warn(("%s No current connections"):format(tostring(BoboFighter)))
 	end
+
+	BoboFighter.HeartbeatConnection:Disconnect()
 end
 
 return BoboFighter
