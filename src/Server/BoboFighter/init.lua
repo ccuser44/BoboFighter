@@ -1,6 +1,36 @@
+Skip to content
+Search or jump to…
+
+Pull requests
+Issues
+Marketplace
+Explore
+
+@SilentsReplacement 
+SilentsReplacement
+	/
+	BoboFighter
+1
+10
+Code
+Issues
+Pull requests
+Actions
+Projects
+Wiki
+Security
+Insights
+Settings
+BoboFighter/src/Server/BoboFighter/init.lua
+@SilentsReplacement
+SilentsReplacement Update init.lua
+Latest commit 733af7d now
+History
+1 contributor
+429 lines (344 sloc)  13.6 KB
+
 --[[
     BoboFighter Version 1.4 - Beta
-
 ]]
 
 local BoboFighter = setmetatable({
@@ -292,23 +322,23 @@ function BoboFighter.Connect()
 					while not primaryPart do
 						primaryPart = character:GetPropertyChangedSignal("PrimaryPart"):Wait() 
 					end
+					
+					primaryPart:GetPropertyChangedSignal("CFrame"):Connect(function()
+						physicsData.ServerChangedPosition = true
+					end)
+
+					primaryPart:GetPropertyChangedSignal("Position"):Connect(function()
+						physicsData.ServerChangedPosition = true
+					end)
 				end)()
-				
-			primaryPart:GetPropertyChangedSignal("CFrame"):Connect(function()
-				physicsData.ServerChangedPosition = true
-			end)
-	
-			primaryPart:GetPropertyChangedSignal("Position"):Connect(function()
-				physicsData.ServerChangedPosition = true
-			end)
 			else
-			    primaryPart:GetPropertyChangedSignal("CFrame"):Connect(function()
-				physicsData.ServerChangedPosition = true
-			end)
-	
-			primaryPart:GetPropertyChangedSignal("Position"):Connect(function()
-				physicsData.ServerChangedPosition = true
-			end)
+				primaryPart:GetPropertyChangedSignal("CFrame"):Connect(function()
+					physicsData.ServerChangedPosition = true
+				end)
+
+				primaryPart:GetPropertyChangedSignal("Position"):Connect(function()
+					physicsData.ServerChangedPosition = true
+				end)
 			end
 		end
 
@@ -342,7 +372,7 @@ function BoboFighter.Connect()
 				if not child:IsA("Tool") then
 					return
 				end
-				
+
 				-- Count number of tools:
 				local toolCount = 0
 
@@ -362,15 +392,15 @@ function BoboFighter.Connect()
 
 		-- Update ray cast params and physics data:
 		physicsData.RayCastParams = rayCastParams
-		
+
 		local humanoidWalkSpeed = math.floor(humanoid.WalkSpeed)
 		local humanoidJumpPower = math.floor(humanoid.JumpPower)
-		
+
 		if physicsData.JumpPower ~= humanoidJumpPower then
 			physicsData.MaxJumpPower = humanoid.JumpPower + humanoid.JumpPower / 2 + leeways.VerticalSpeed
 			physicsData.JumpPower = humanoidJumpPower
 		end
-		
+
 		if physicsData.WalkSpeed ~= humanoidWalkSpeed then
 			physicsData.MaxWalkSpeed = humanoid.JumpPower + humanoid.JumpPower / 2 + leeways.VerticalSpeed
 			physicsData.WalkSpeed = humanoidWalkSpeed
