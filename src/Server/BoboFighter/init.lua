@@ -293,8 +293,7 @@ function BoboFighter.Connect()
 						primaryPart = character:GetPropertyChangedSignal("PrimaryPart"):Wait() 
 					end
 				end)()
-			end
-			
+				
 			primaryPart:GetPropertyChangedSignal("CFrame"):Connect(function()
 				physicsData.ServerChangedPosition = true
 			end)
@@ -302,6 +301,15 @@ function BoboFighter.Connect()
 			primaryPart:GetPropertyChangedSignal("Position"):Connect(function()
 				physicsData.ServerChangedPosition = true
 			end)
+			else
+			    primaryPart:GetPropertyChangedSignal("CFrame"):Connect(function()
+				physicsData.ServerChangedPosition = true
+			end)
+	
+			primaryPart:GetPropertyChangedSignal("Position"):Connect(function()
+				physicsData.ServerChangedPosition = true
+			end)
+			end
 		end
 
 		if detections.InvalidToolDrop or detections.GodMode then
