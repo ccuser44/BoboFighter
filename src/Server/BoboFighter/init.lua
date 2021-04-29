@@ -1,5 +1,5 @@
 --[[
-    BoboFighter Version 1.4 - Beta
+    BoboFighter Version 1.6 - Beta
 ]]
 
 local BoboFighter = setmetatable({
