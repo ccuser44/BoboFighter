@@ -381,6 +381,10 @@ function BoboFighter.Connect()
 	end
 
 	local function PlayerAdded(player)
+		if detections.IgnoreAdmins and (_G.Adonis and _G.Adonis.CheckAdmin(player) or --[[_G.HDAdminMain and or]] _G.CommanderAPI and _G.CommanderAPI.checkAdmin:Invoke(player)) then
+			return
+		end
+
 		-- Reliable way of firing CharacterAdded event properly:
 		CharacterAdded(player, player.Character or player.CharacterAdded:Wait())
 
