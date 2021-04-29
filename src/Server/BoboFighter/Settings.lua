@@ -8,7 +8,7 @@ return {
 		MultiToolEquip = true, -- Multiple tools equipped at the same time
 		InvalidToolDrop = true, -- Dropping tools with CanBeDropped set to false 
 		GodMode = true, -- Deleting humanoid on the server and creating a new humanoid on the client
-		PreventHatDrop = true, -- If dropping hats is prevented. If you have a hat drop script disable this
+		InvalidHatDrop = true, -- Hats being dropped invalidly
 	},
 
 	-- List of user id's that will be black listed (won't be detected)
