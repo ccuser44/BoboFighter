@@ -302,11 +302,14 @@ function BoboFighter.Connect()
 			end)
 		end
 	
-		if detections.InvalidToolDrop or detections.GodMode then
+		if detections.InvalidToolDrop or detections.GodMode or detections.PreventHatDrop then
 			character.ChildRemoved:Connect(function(child)
-				-- Make sure the child is a tool and isn't a part of the player's backpack:
-				if (not child:IsA("Tool")) or child.Parent == player.Backpack then
-					return
+				if child:IsA("Accoutrement") and detections.PreventHatDrop and child.Parent == workspace then
+					-- Make sure the accoutrement wasn't destroyed from the server:
+					if not Child_Destroyed(child) then
+						RunService.Heartbeat:Wait()
+						child.Parent = character
+					end
 				end
 
 				if detections.GodMode and child:IsA("Humanoid") then
@@ -317,7 +320,12 @@ function BoboFighter.Connect()
 					end
 				end
 
-				if detections.InvalidToolDrop and child:IsA("Tool") then
+				-- Make sure the child is a tool and isn't a part of the player's backpack:
+				if (not child:IsA("BackpackItem")) or child.Parent == player.Backpack then
+					return
+				end
+
+				if detections.InvalidToolDrop and child:IsA("BackpackItem") then
 					-- Can the tool be dropped?
 					if child.CanBeDropped then
 						return
@@ -334,7 +342,7 @@ function BoboFighter.Connect()
 
 		if detections.MultiToolEquip then
 			character.ChildAdded:Connect(function(child)
-				if not child:IsA("Tool") then
+				if not child:IsA("BackpackItem") then
 					return
 				end
 
@@ -342,13 +350,13 @@ function BoboFighter.Connect()
 				local toolCount = 0
 
 				for _, child in ipairs(character:GetChildren()) do
-					if child:IsA("Tool") then
+					if child:IsA("BackpackItem") then
 						toolCount += 1
 
 						-- Player has equiped more than 1 tool?
 						if toolCount > 1 then
 							RunService.Heartbeat:Wait()
-							child.Parent = player.Backpack
+							child.Parent = player:FindFirstChildOfClass("Backpack") or Instance.new("Backpack", player)
 						end
 					end 
 				end
