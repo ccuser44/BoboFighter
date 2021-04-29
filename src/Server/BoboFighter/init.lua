@@ -89,7 +89,7 @@ local function HeartbeatUpdate()
 			local humanoid = character:FindFirstChildWhichIsA("Humanoid")
 
 			-- No root part or humanoid?
-			if (not primaryPart) or not humanoid then
+			if not primaryPart or not humanoid then
 				continue
 			end
 
@@ -102,10 +102,10 @@ local function HeartbeatUpdate()
 				continue
 			end
 
-			local lastCheckDelta = time() - (exploitData.LastCheckCycle or time())
+			local lastCheckDelta = os.clock() - (exploitData.LastCheckCycle or os.clock())
 			local canSetNetworkOwner, _ = primaryPart:CanSetNetworkOwnership(), nil
 
-			if (not canSetNetworkOwner) or humanoid.Health <= 0 then
+			if not canSetNetworkOwner or humanoid.Health <= 0 then
 				physicsData.Died = true
 				continue
 			end
@@ -113,7 +113,7 @@ local function HeartbeatUpdate()
 			-- Server has network ownership?
 			if not primaryPart:GetNetworkOwner() and exploitData.TimeSincePunished > 0 then
 				-- Has cooldown passed?
-				if time() - exploitData.TimeSincePunished >= Settings.CheckCooldown then
+				if os.clock() - exploitData.TimeSincePunished >= Settings.CheckCooldown then
 					primaryPart:SetNetworkOwner(player)
 					physicsData.LastCFrame = primaryPart.CFrame
 					exploitData.TimeSincePunished = 0
@@ -142,7 +142,7 @@ local function HeartbeatUpdate()
 						-- Depth greater than leeway?
 						if depth >= leeways.NoClipDepth then
 							Punish(primaryPart, physicsData.LastCFrame)
-							exploitData.TimeSincePunished = time()
+							exploitData.TimeSincePunished = os.clock()
 							table.insert(exploitData.Detections, ("No Clip | Captured depth: %s"):format(depth))
 						end 
 
@@ -153,7 +153,7 @@ local function HeartbeatUpdate()
 						-- Depth greater than leeway?
 						if depth and depth >= leeways.NoClipDepth then
 							Punish(primaryPart, primaryPart.CFrame * CFrame.new(0, 0, 3))
-							exploitData.TimeSincePunished = time()
+							exploitData.TimeSincePunished = os.clock()
 							exploitData.Flags += 1
 							table.insert(exploitData.Detections, ("No Clip | Captured depth: %s"):format(depth))
 						end
@@ -180,7 +180,7 @@ local function HeartbeatUpdate()
 					-- Accumulated average speed greater than max jump speed?
 					if averageSpeed > physicsData.MaxWalkSpeed then
 						Punish(primaryPart, physicsData.LastCFrame)
-						exploitData.TimeSincePunished = time()
+						exploitData.TimeSincePunished = os.clock()
 						exploitData.Flags += 1
 						table.insert(exploitData.Detections, ("Speeding | Captured average speed: %s"):format(averageSpeed))
 					end
@@ -207,7 +207,7 @@ local function HeartbeatUpdate()
 						-- Accumulated jump power greater than max jump power?
 						if accumulatedJumpPower > physicsData.MaxJumpPower then
 							Punish(primaryPart, physicsData.LastCFrame)
-							exploitData.TimeSincePunished = time()
+							exploitData.TimeSincePunished = os.clock()
 							exploitData.Flags += 1
 							table.insert(exploitData.Detections, ("Vertical Speeding | Captured jump power: %s"):format(accumulatedJumpPower))
 						end
@@ -228,7 +228,7 @@ local function HeartbeatUpdate()
 				end 
 
 				physicsData.LastCFrame = primaryPart.CFrame
-				exploitData.LastCheckCycle = time()
+				exploitData.LastCheckCycle = os.clock()
 			end
 		end
 	end)
@@ -269,7 +269,7 @@ function BoboFighter.Connect()
 
 				Detections = {},
 				Flags = 0,
-				LastCheckCycle = time(),
+				LastCheckCycle = os.clock(),
 				LastCheckTime = 0,
 				TimeSincePunished = 0,
 				HeartbeatConnection = nil
@@ -281,38 +281,34 @@ function BoboFighter.Connect()
 
 		local physicsData = exploitData.PhysicsData
 
-		-- Only listen to scripted positional changes if physics detections are turned on in the first place:
-		if detections.Fly or detections.Speed or detections.NoClip then 
-			-- Create a new thread to yield:
-			if not primaryPart then
-				coroutine.wrap(function()
-					-- The primary part may not be updated even when this event fires, (set to nil again) though
-					-- that is a very rare case 
-					while not primaryPart do
-						primaryPart = character:GetPropertyChangedSignal("PrimaryPart"):Wait() 
-					end
-					
-					primaryPart:GetPropertyChangedSignal("CFrame"):Connect(function()
-						physicsData.ServerChangedPosition = true
-					end)
-
-					primaryPart:GetPropertyChangedSignal("Position"):Connect(function()
-						physicsData.ServerChangedPosition = true
-					end)
-				end)()
-			else
-				primaryPart:GetPropertyChangedSignal("CFrame"):Connect(function()
-					physicsData.ServerChangedPosition = true
-				end)
-
-				primaryPart:GetPropertyChangedSignal("Position"):Connect(function()
-					physicsData.ServerChangedPosition = true
-				end)
-			end
+		-- Create a new thread to yield:
+		if not primaryPart then
+			coroutine.wrap(function()
+				-- Wait for the primary part:
+				while not primaryPart do
+					primaryPart = character:GetPropertyChangedSignal("PrimaryPart"):Wait() 
+				end
+			end)()
 		end
+		
+		-- Only listen to scripted positional changes if physics detections are turned on in the first place:
+		if detections.Fly or detections.Speed or detections.NoClip then  
+			primaryPart:GetPropertyChangedSignal("CFrame"):Connect(function()
+				physicsData.ServerChangedPosition = true
+			end)
 
+			primaryPart:GetPropertyChangedSignal("Position"):Connect(function()
+				physicsData.ServerChangedPosition = true
+			end)
+		end
+	
 		if detections.InvalidToolDrop or detections.GodMode then
 			character.ChildRemoved:Connect(function(child)
+				-- Make sure the child is a tool and isn't a part of the player's backpack:
+				if (not child:IsA("Tool")) or child.Parent == player.Backpack then
+					return
+				end
+
 				if detections.GodMode and child:IsA("Humanoid") then
 					-- Make sure the humanoid wasn't destroyed from the server:
 					if not Child_Destroyed(child) then
@@ -336,7 +332,7 @@ function BoboFighter.Connect()
 			end)
 		end 
 
-		if detections.MultiToolEquip or detections.InvalidToolGripHeight then
+		if detections.MultiToolEquip then
 			character.ChildAdded:Connect(function(child)
 				if not child:IsA("Tool") then
 					return
