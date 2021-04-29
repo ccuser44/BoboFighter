@@ -1,4 +1,4 @@
---[[
+-[[
     BoboFighter Version 1.6 - Beta
 ]]
 
@@ -290,7 +290,7 @@ function BoboFighter.Connect()
 				end
 			end)()
 		end
-		
+
 		-- Only listen to scripted positional changes if physics detections are turned on in the first place:
 		if detections.Fly or detections.Speed or detections.NoClip then  
 			primaryPart:GetPropertyChangedSignal("CFrame"):Connect(function()
@@ -301,10 +301,10 @@ function BoboFighter.Connect()
 				physicsData.ServerChangedPosition = true
 			end)
 		end
-	
+
 		if detections.InvalidToolDrop or detections.GodMode or detections.PreventHatDrop then
 			character.ChildRemoved:Connect(function(child)
-				if child:IsA("Accoutrement") and detections.PreventHatDrop and child.Parent == workspace then
+				if child:IsA("Accoutrement") and detections.InvalidHatDrop and child.Parent == Workspace then
 					-- Make sure the accoutrement wasn't destroyed from the server:
 					if not Child_Destroyed(child) then
 						RunService.Heartbeat:Wait()
@@ -325,7 +325,7 @@ function BoboFighter.Connect()
 					return
 				end
 
-				if detections.InvalidToolDrop and child:IsA("BackpackItem") then
+				if detections.InvalidToolDrop then
 					-- Can the tool be dropped?
 					if child.CanBeDropped then
 						return
