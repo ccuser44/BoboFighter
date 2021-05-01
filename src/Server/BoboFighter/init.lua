@@ -396,7 +396,7 @@ function BoboFighter.Connect()
 			or _G.HDAdminMain and _G.HDAdminMain:GetModule("API") and _G.HDAdminMain:GetModule("API"):GetRank(player) > (_G.HDAdminMain:GetModule("API") and _G.HDAdminMain:GetModule("API"):GetRankId("nonadmins") or 0)
 			or _G.CommanderAPI and _G.CommanderAPI.checkAdmin and _G.CommanderAPI.checkAdmin:Invoke(player))
 		then
-			return	
+			return
 		end
 
 
