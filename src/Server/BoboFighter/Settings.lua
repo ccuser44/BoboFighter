@@ -18,6 +18,9 @@ return {
 		]]
 	},
 
+	IgnoreOwners = true, -- If game owners are whitelisted from the anti cheat
+	IgnoreAdmins = true, -- If admins are whitelisted from the anti cheat
+
 	Leeways = {
 		-- Lower leeways than these may result in false positives! You're encouraged to test them out though and see 
 		-- which one is best suited for your game
