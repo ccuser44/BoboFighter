@@ -322,7 +322,7 @@ function BoboFighter.Connect()
 				end
 
 				-- Make sure the child is a tool and isn't a part of the player's backpack:
-				if (not child:IsA("BackpackItem")) or child.Parent == player.Backpack then
+				if (not child:IsA("BackpackItem")) or child.Parent == player:FindFirstChildOfClass("Backpack") then
 					return
 				end
 
