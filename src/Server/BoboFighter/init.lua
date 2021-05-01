@@ -12,6 +12,7 @@ end})
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
+local GroupService = game:GetService("GroupService")
 
 assert(script:FindFirstChild("Settings"), "Settings module not found")
 assert(script:FindFirstChild("Constants"), "Constants module not found")
@@ -380,7 +381,25 @@ function BoboFighter.Connect()
 		end
 	end
 
+	local GotGroupOwnerId = 0
+	coroutine.wrap(xpcall)(function()
+		if game.CreatorType == Enum.CreatorType.Group then
+			GroupedId = GroupService:GetGroupInfoAsync(game.CreatorId).Owner.Id
+		end
+	end, warn)
+
 	local function PlayerAdded(player)
+		if 
+			Settings.IgnoreOwners == true and (game.CreatorId == player.UserId and game.CreatorType == Enum.CreatorType.User or game.CreatorType == Enum.CreatorType.Group and GotGroupOwnerId == player.UserId)
+			or Settings.IgnoreAdmins and (
+			_G.Adonis and _G.Adonis.CheckAdmin and _G.Adonis.CheckAdmin(player)
+			or _G.HDAdminMain and _G.HDAdminMain:GetModule("API") and _G.HDAdminMain:GetModule("API"):GetRank(player) > (_G.HDAdminMain:GetModule("API"):GetRankId("nonadmins") or 0)
+			or _G.CommanderAPI and _G.CommanderAPI.checkAdmin and _G.CommanderAPI.checkAdmin:Invoke(player))
+		then
+			return	
+		end
+
+
 		-- Reliable way of firing CharacterAdded event properly:
 		CharacterAdded(player, player.Character or player.CharacterAdded:Wait())
 
