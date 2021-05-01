@@ -67,14 +67,14 @@ local function Child_Destroyed(child)
 		child.Parent = child
 	end)
 
-	return result:match("locked")
+	return string.match(result, "locked")
 end
 
 local function HeartbeatUpdate()
 	BoboFighter.HeartbeatUpdate = RunService.Heartbeat:Connect(function()
 		for _, player in ipairs(Players:GetPlayers()) do
-			-- Is player black listed?
-			if Settings.BlackListedPlayers[player.UserId] then
+			-- Is player whitelisted?
+			if Settings.WhiteListedPlayers[player.UserId] then
 				continue
 			end
 
@@ -144,7 +144,7 @@ local function HeartbeatUpdate()
 						if depth >= leeways.NoClipDepth then
 							Punish(primaryPart, physicsData.LastCFrame)
 							exploitData.TimeSincePunished = os.clock()
-							table.insert(exploitData.Detections, ("No Clip | Captured depth: %s"):format(depth))
+							table.insert(exploitData.Detections, string.format("No Clip | Captured depth: %s", depth))
 						end 
 
 					elseif not ray then
@@ -156,7 +156,7 @@ local function HeartbeatUpdate()
 							Punish(primaryPart, primaryPart.CFrame * CFrame.new(0, 0, 3))
 							exploitData.TimeSincePunished = os.clock()
 							exploitData.Flags += 1
-							table.insert(exploitData.Detections, ("No Clip | Captured depth: %s"):format(depth))
+							table.insert(exploitData.Detections, string.format("No Clip | Captured depth: %s", depth))
 						end
 					end
 				end
@@ -183,7 +183,7 @@ local function HeartbeatUpdate()
 						Punish(primaryPart, physicsData.LastCFrame)
 						exploitData.TimeSincePunished = os.clock()
 						exploitData.Flags += 1
-						table.insert(exploitData.Detections, ("Speeding | Captured average speed: %s"):format(averageSpeed))
+						table.insert(exploitData.Detections, string.format("Speeding | Captured average speed: %s", averageSpeed))
 					end
 				end
 			end
@@ -210,7 +210,7 @@ local function HeartbeatUpdate()
 							Punish(primaryPart, physicsData.LastCFrame)
 							exploitData.TimeSincePunished = os.clock()
 							exploitData.Flags += 1
-							table.insert(exploitData.Detections, ("Vertical Speeding | Captured jump power: %s"):format(accumulatedJumpPower))
+							table.insert(exploitData.Detections, string.format("Vertical Speeding | Captured jump power: %s", accumulatedJumpPower))
 						end
 					end
 				end
@@ -442,7 +442,7 @@ end
 
 function BoboFighter.Disconnect()
 	if not BoboFighter.HeartbeatConnection then
-		return warn(("%s No current connections"):format(tostring(BoboFighter)))
+		return warn(string.format("%s No current connections", tostring(BoboFighter)))
 	end
 
 	BoboFighter.HeartbeatConnection:Disconnect()
