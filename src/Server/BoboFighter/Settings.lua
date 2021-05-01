@@ -11,8 +11,8 @@ return {
 		InvalidHatDrop = true, -- Hats being dropped invalidly
 	},
 
-	-- List of user id's that will be black listed (won't be detected)
-	BlackListedPlayers = {
+	-- List of user id's that will be whitelisted (won't be detected)
+	WhiteListedPlayers = {
 		--[[  
 			[125390463] = true,
 		]]
