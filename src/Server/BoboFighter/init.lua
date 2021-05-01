@@ -384,7 +384,7 @@ function BoboFighter.Connect()
 	local GotGroupOwnerId = 0
 	coroutine.wrap(xpcall)(function()
 		if game.CreatorType == Enum.CreatorType.Group then
-			GroupedId = GroupService:GetGroupInfoAsync(game.CreatorId).Owner.Id
+			GotGroupOwnerId = GroupService:GetGroupInfoAsync(game.CreatorId).Owner.Id
 		end
 	end, warn)
 
