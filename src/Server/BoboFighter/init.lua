@@ -390,6 +390,7 @@ function BoboFighter.Connect()
 					gotGroupOwnerId = GroupService:GetGroupInfoAsync(game.CreatorId).Owner.Id
 				end, warn)
 				tries += 1
+				RunService.Heartbeat:Wait()
 			until gotGroupOwnerId and gotGroupOwnerId ~= 0 or tries > Constants.MAX_GROUPINFO_TRIES
 		end
 	end)()
