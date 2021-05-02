@@ -381,16 +381,22 @@ function BoboFighter.Connect()
 		end
 	end
 
-	local GotGroupOwnerId = 0
-	coroutine.wrap(xpcall)(function()
+	local gotGroupOwnerId = 0
+	coroutine.wrap(function()
 		if game.CreatorType == Enum.CreatorType.Group then
-			GotGroupOwnerId = GroupService:GetGroupInfoAsync(game.CreatorId).Owner.Id
+			local tries = 0
+			repeat
+				xpcall(function()
+					gotGroupOwnerId = GroupService:GetGroupInfoAsync(game.CreatorId).Owner.Id
+				end, warn)
+				tries += 1
+			until gotGroupOwnerId and gotGroupOwnerId ~= 0 or tries > Constants.MAX_GROUPINFO_TRIES
 		end
-	end, warn)
+	end)()
 
 	local function PlayerAdded(player)
 		if 
-			Settings.IgnoreOwners == true and (game.CreatorId == player.UserId and game.CreatorType == Enum.CreatorType.User or game.CreatorType == Enum.CreatorType.Group and GotGroupOwnerId == player.UserId)
+			Settings.IgnoreOwners == true and (game.CreatorId == player.UserId and game.CreatorType == Enum.CreatorType.User or game.CreatorType == Enum.CreatorType.Group and gotGroupOwnerId == player.UserId)
 			or Settings.IgnoreAdmins and (
 			_G.Adonis and _G.Adonis.CheckAdmin and _G.Adonis.CheckAdmin(player)
 			or _G.HDAdminMain and _G.HDAdminMain:GetModule("API") and (_G.HDAdminMain:GetModule("API"):GetRank(player) > (_G.HDAdminMain:GetModule("API"):GetRankId("nonadmins") or 0))
