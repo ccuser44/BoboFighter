@@ -1,4 +1,4 @@
--[[
+--[[
     BoboFighter Version 1.6 - Beta
 ]]
 
