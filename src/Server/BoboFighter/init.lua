@@ -72,8 +72,8 @@ end
 local function HeartbeatUpdate()
 	BoboFighter.HeartbeatUpdate = RunService.Heartbeat:Connect(function()
 		for _, player in ipairs(Players:GetPlayers()) do
-			-- Is player black listed?
-			if Settings.BlackListedPlayers[player.UserId] then
+			-- Is player whitelisted?
+			if Settings.WhitelistedPlayers[player.UserId] then
 				continue
 			end
 
